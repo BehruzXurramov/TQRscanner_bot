@@ -15,24 +15,29 @@ app.use(bot.webhookCallback(WEBHOOK_PATH));
 app.use("/qrapp", express.static(path.join(__dirname, "../public")));
 
 app.post("/sendtouser", async (req, res) => {
-  let { user_id, data } = req.body;
-  text = `App code: ${data}`;
+  try {
+    let { user_id, data } = req.body;
+    text = `App code: ${data}`;
 
-  const message = await bot.telegram.sendMessage(user_id, text);
+    const message = await bot.telegram.sendMessage(user_id, text);
 
-  if (!message.entities) {
-    bot.telegram.editMessageText(user_id, message.message_id, null, text, {
-      entities: [
-        {
-          offset: text.indexOf(data),
-          length: data.length,
-          type: "code",
-        },
-      ],
-    });
+    if (!message.entities) {
+      bot.telegram.editMessageText(user_id, message.message_id, null, text, {
+        entities: [
+          {
+            offset: text.indexOf(data),
+            length: data.length,
+            type: "code",
+          },
+        ],
+      });
+    }
+
+    res.sendStatus(200);
+  } catch (error) {
+    console.log(error);
+    res.status(500).send("Error sending message");
   }
-
-  res.sendStatus(200);
 });
 
 bot.telegram
